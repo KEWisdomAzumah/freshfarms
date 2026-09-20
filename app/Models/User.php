@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -54,6 +55,16 @@ class User extends Authenticatable
 
     public function role(): BelongsTo{
         return $this -> belongsTo(Role::class, 'role_id', 'role_id');
+    }
+
+    public function farms(): HasMany{
+        return $this -> hasMany(
+            Farm::class, 'owner_id', 'user_id');
+    }
+
+    public function verifiedFarms(): HasMany{
+        return $this -> hasMany(
+            Farm::class, 'verified_by', 'user_id');
     }
 
 }
