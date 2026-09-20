@@ -1,0 +1,80 @@
+name: FreshFarms CI
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  test:
+    name: Laravel PostgreSQL Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: freshfarms_test
+          POSTGRES_USER: freshfarms_ci
+          POSTGRES_PASSWORD: freshfarms_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U freshfarms_ci -d freshfarms_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      APP_ENV: testing
+      APP_DEBUG: false
+
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: freshfarms_test
+      DB_USERNAME: freshfarms_ci
+      DB_PASSWORD: freshfarms_ci_password
+      DB_SCHEMA: public
+      DB_SSLMODE: disable
+
+      MIGRATION_DB_USERNAME: freshfarms_ci
+      MIGRATION_DB_PASSWORD: freshfarms_ci_password
+
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_pgsql, pgsql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Clear Laravel configuration
+        run: php artisan config:clear
+
+      - name: Run database migrations
+        run: php artisan migrate --database=pgsql_migration --force
+
+      - name: Run database seeders
+        run: php artisan db:seed --class=RoleSeeder --force
+
+      - name: Run automated tests
+        run: php artisan test
