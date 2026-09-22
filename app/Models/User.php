@@ -67,4 +67,13 @@ class User extends Authenticatable
             Farm::class, 'verified_by', 'user_id');
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(
+            Order::class,
+            'buyer_id',
+            'user_id'
+        );
+    }
+
 }

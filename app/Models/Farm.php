@@ -60,8 +60,21 @@ class Farm extends Model
         );
     }
 
-    public function products():HasMany{
+    public function products():HasMany
+    {
         return $this -> hasMany(
-            Product::class, 'farm_id', 'farm_id');
+            Product::class,
+            'farm_id',
+            'farm_id');
     }
+
+    public function orderItems():HasMany
+    {
+        return $this->hasMany(
+            OrderItem::class,
+            'product_id',
+            'product_id'
+        );
+    }
+
 }
